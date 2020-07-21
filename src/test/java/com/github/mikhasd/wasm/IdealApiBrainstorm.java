@@ -1,4 +1,4 @@
-package com.github.mikhasd.gen;
+package com.github.mikhasd.wasm;
 
 import com.github.mikhasd.wasm.gen.CodeWriter;
 import com.github.mikhasd.wasm.gen.OutputStreamCodeWriter;

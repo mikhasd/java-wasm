@@ -1,6 +1,5 @@
 package com.github.mikhasd.wasm.exec;
 
-import com.github.mikhasd.wasm.gen.model.*;
 import com.github.mikhasd.wasm.model.*;
 
 import java.io.IOException;
@@ -20,19 +19,6 @@ public class ModuleFactory {
 
     private final static byte[] MAGIC = {0x00, 0x61, 0x73, 0x6D};
     private final static byte[] VERSION = {0x01, 0x00, 0x00, 0x00};
-
-    public static void main(String... args) throws IOException, URISyntaxException {
-
-
-        URL resource = Thread.currentThread().getContextClassLoader().getResource("main.wasm");
-        Path wasmPath = Paths.get(resource.toURI());
-
-        try (var channel = FileChannel.open(wasmPath, StandardOpenOption.READ)) {
-            MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-            new ModuleFactory().createModule(buffer);
-        }
-
-    }
 
     static int readUnsignedLeb128(ByteBuffer bb) {
 
@@ -60,7 +46,6 @@ public class ModuleFactory {
                 int length = readUnsignedLeb128(bb);
                 ByteBuffer sectionBuffer = bb.slice().limit(length);
                 Sections sections = Sections.valueOf(section);
-                System.out.println("Parsing " + sections);
                 switch (section) {
                     case Sections.TYPE_IDX:
                         consumeTypeSection(sectionBuffer);
