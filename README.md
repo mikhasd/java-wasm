@@ -3,7 +3,7 @@ java-wasm
 
 This a playground project in which I'll perform a couple of experiments with [WebAssembly](https://webassembly.org/).
 
-My personal goals includes (my are not limited to):
+My personal goals includes (not limited to):
 
 - Generate executable WebAssembly binaries
 - Parse WebAssembly binary files (.wasm)
