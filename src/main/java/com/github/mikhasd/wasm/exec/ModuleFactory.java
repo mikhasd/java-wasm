@@ -5,6 +5,7 @@ import com.github.mikhasd.wasm.gen.model.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -13,8 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ModuleFactory {
 
@@ -54,44 +53,43 @@ public class ModuleFactory {
         if (!checkMagic(bb) || !checkVersion(bb)) {
             throw new IllegalArgumentException("Invalid WASM file");
         }
-        ExecutorService pool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         try {
             while (true) {
                 byte section = bb.get();
                 int length = readUnsignedLeb128(bb);
-                ByteBuffer sectionBuffer = bb.slice();
+                ByteBuffer sectionBuffer = bb.slice().limit(length);
                 Sections sections = Sections.valueOf(section);
                 System.out.println("Parsing " + sections);
                 switch (section) {
                     case Sections.TYPE_IDX:
-                        pool.execute(() -> consumeTypeSection(sectionBuffer));
+                        consumeTypeSection(sectionBuffer);
                         break;
                     case Sections.IMPORT_IDX:
-                        pool.execute(() -> consumeImportSection(sectionBuffer));
+                        consumeImportSection(sectionBuffer);
                         break;
                     case Sections.FUNCTION_IDX:
-                        pool.execute(() -> consumeFunctionSection(sectionBuffer));
+                        consumeFunctionSection(sectionBuffer);
                         break;
                     case Sections.TABLE_IDX:
-                        pool.execute(() -> consumeTableSection(sectionBuffer));
+                        consumeTableSection(sectionBuffer);
                         break;
                     case Sections.MEMORY_IDX:
-                        pool.execute(() -> consumeMemorySection(sectionBuffer));
+                        consumeMemorySection(sectionBuffer);
                         break;
                     case Sections.GLOBAL_IDX:
-                        pool.execute(() -> consumeGlobalSection(sectionBuffer));
+                        consumeGlobalSection(sectionBuffer);
                         break;
                     case Sections.EXPORT_IDX:
-                        pool.execute(() -> consumeExportSection(sectionBuffer));
+                        consumeExportSection(sectionBuffer);
                         break;
                     case Sections.CODE_IDX:
-                        pool.execute(() -> consumeCodeSection(sectionBuffer));
+                        consumeCodeSection(sectionBuffer);
                         break;
                     case Sections.DATA_IDX:
-                        pool.execute(() -> consumeDataSection(sectionBuffer));
+                        consumeDataSection(sectionBuffer);
                         break;
                     case Sections.CUSTOM_IDX:
-                        pool.execute(() -> consumeCustomSection(sectionBuffer));
+                        consumeCustomSection(sectionBuffer);
                         break;
                     default:
                         throw new UnsupportedOperationException("I don't know how to parse " + sections);
@@ -99,10 +97,11 @@ public class ModuleFactory {
 
                 bb.position(bb.position() + length);
             }
-        } finally {
-            pool.shutdown();
+        } catch (BufferUnderflowException buex) {
+            if (bb.position() != bb.limit()) {
+                throw new IllegalArgumentException("Error while parsing WASM file");
+            }
         }
-
 
     }
 
@@ -110,165 +109,135 @@ public class ModuleFactory {
         int typeCount = readUnsignedLeb128(bb);
         var functionTypes = new ArrayList<FunctionType>(typeCount);
         for (int i = 0; i < typeCount; i++) {
-            synchronized (this) {
-                byte fnType = bb.get();
-                if (fnType != Types.TYPE_FUNCTION)
-                    throw new IllegalArgumentException(String.format("Expected Function Type %02X", fnType));
-                int parameterCount = readUnsignedLeb128(bb);
-                int[] parameterTypes = new int[parameterCount];
-                for (int j = 0; j < parameterCount; j++) {
-                    int type = readUnsignedLeb128(bb);
-                    parameterTypes[j] = type;
-                }
-                int resultCount = readUnsignedLeb128(bb);
-                int[] resultTypes = new int[resultCount];
-                for (int j = 0; j < resultCount; j++) {
-                    int type = readUnsignedLeb128(bb);
-                    resultTypes[j] = type;
-                }
-                var functionType = FunctionType.of(IndexVector.of(parameterTypes), IndexVector.of(resultTypes));
-                functionTypes.add(functionType);
+            byte fnType = bb.get();
+            if (fnType != Types.TYPE_FUNCTION)
+                throw new IllegalArgumentException(String.format("Expected Function Type %02X", fnType));
+            int parameterCount = readUnsignedLeb128(bb);
+            int[] parameterTypes = new int[parameterCount];
+            for (int j = 0; j < parameterCount; j++) {
+                int type = readUnsignedLeb128(bb);
+                parameterTypes[j] = type;
             }
+            int resultCount = readUnsignedLeb128(bb);
+            int[] resultTypes = new int[resultCount];
+            for (int j = 0; j < resultCount; j++) {
+                int type = readUnsignedLeb128(bb);
+                resultTypes[j] = type;
+            }
+            var functionType = FunctionType.of(IndexVector.of(parameterTypes), IndexVector.of(resultTypes));
+            functionTypes.add(functionType);
+
         }
 
         return new TypesSection(Vector.of(functionTypes));
     }
 
-    private void printType(int type) {
-        switch (type) {
-            case Types.TYPE_INDEX_F32:
-                System.out.print("\tTYPE_INDEX_F32");
-                break;
-            case Types.TYPE_INDEX_F64:
-                System.out.print("\tTYPE_INDEX_F64");
-                break;
-            case Types.TYPE_INDEX_I32:
-                System.out.print("\tTYPE_INDEX_I32");
-                break;
-            case Types.TYPE_INDEX_I64:
-                System.out.print("\tTYPE_INDEX_I64");
-                break;
-            default:
-                System.out.print("Unknown Type " + type);
+    private CodeSection consumeCodeSection(ByteBuffer bb) {
+        var count = readUnsignedLeb128(bb);
+        var functionsCode = new ArrayList<Code>(count);
+        for (var i = 0; i < count; i++) {
+            final var functionLength = readUnsignedLeb128(bb);
+            final var localsStart = bb.position();
+
+            final var localsCount = readUnsignedLeb128(bb);
+            final var locals = new int[localsCount];
+            for (var l = 0; l < localsCount; l++) {
+                locals[l] = readUnsignedLeb128(bb);
+            }
+
+            final var localsEnd = bb.position();
+            final var localsLength = localsEnd - localsStart;
+
+            final var bytecodeLength = functionLength - localsLength;
+            final var bytecodeBuffer = new byte[bytecodeLength];
+            bb.get(bytecodeBuffer);
+            var code = new Code(new Function(IndexVector.of(locals), bytecodeBuffer));
+            functionsCode.add(code);
         }
-    }
-
-    private void consumeCodeSection(ByteBuffer bb) {
-
+        return new CodeSection(Vector.of(functionsCode));
     }
 
     private void consumeCustomSection(ByteBuffer bb) {
         String moduleName = readString(bb.slice());
-        System.out.println("\tname: " + moduleName);
+        System.err.println("Custom section parsing is not yet implemented: " + moduleName);
     }
 
-    private void consumeDataSection(ByteBuffer bb) {
-        int datas = readUnsignedLeb128(bb);
-        for (int d = 0; d < datas; d++) {
-            synchronized (this) {
-                System.out.println("Data " + d);
-                System.out.print("\t");
-                int index = readUnsignedLeb128(bb);
-                System.out.print(index);
-                System.out.println();
-                System.out.print('\t');
-                byte instruction = bb.get();
-                while (instruction != 0x0B) {
-                    System.out.print(String.format("%02X ", instruction));
-                    instruction = bb.get();
-                }
-                int dataLength = readUnsignedLeb128(bb);
-                System.out.println("\tLength " + dataLength);
-                bb.position(bb.position() + dataLength);
+    private DataSection consumeDataSection(ByteBuffer bb) {
+        var count = readUnsignedLeb128(bb);
+        var datas = new ArrayList<Data>(count);
+        for (var i = 0; i < count; i++) {
+            var index = readUnsignedLeb128(bb);
+            var expression = new ArrayList<Byte>();
+            byte instruction;
+            do {
+                instruction = bb.get();
+                expression.add(instruction);
+            } while (instruction != 0x0B);
+            var expressionBuffer = new byte[expression.size()];
+            for (int j = 0; j < expression.size(); j++) {
+                expressionBuffer[j] = expression.get(j);
             }
-        }
-    }
+            var dataLength = readUnsignedLeb128(bb);
+            var dataBuffer = new byte[dataLength];
+            bb.get(dataBuffer);
 
-    private void consumeGlobalSection(ByteBuffer bb) {
-        int globals = readUnsignedLeb128(bb);
-
-        for (int g = 0; g < globals; g++) {
-            synchronized (this) {
-                System.out.println("Global " + g);
-                byte type = bb.get();
-                byte mutability = bb.get();
-                if (mutability == 0x00) {
-                    System.out.print("\tconst\t");
-                } else if (mutability == 0x01) {
-                    System.out.print("\tvar\t");
-                }
-                printType(type);
-                System.out.print("\n\t");
-                byte instruction = bb.get();
-                while (instruction != 0x0B) {
-                    System.out.print(String.format("%02X ", instruction));
-                    instruction = bb.get();
-                }
-
-                System.out.println();
-            }
-        }
-    }
-
-    private void consumeExportSection(ByteBuffer bb) {
-        int exports = readUnsignedLeb128(bb);
-        for (int e = 0; e < exports; e++) {
-            synchronized (this) {
-                System.out.println("Export " + e);
-                String name = readString(bb);
-                System.out.print("\t" + name);
-                byte type = bb.get();
-                switch (type) {
-                    case 0x00:
-                        System.out.print(" function ");
-                        break;
-                    case 0x01:
-                        System.out.print(" table ");
-                        break;
-                    case 0x02:
-                        System.out.print(" memory ");
-                        break;
-                    case 0x03:
-                        System.out.print(" global ");
-                        break;
-                }
-
-                int index = readUnsignedLeb128(bb);
-                System.out.println(index);
-            }
+            var data = new Data(index, expressionBuffer, dataBuffer);
+            datas.add(data);
         }
 
+        return new DataSection(Vector.of(datas));
     }
 
-    private void consumeImportSection(ByteBuffer bb) {
+    private GlobalSections consumeGlobalSection(ByteBuffer bb) {
+        var count = readUnsignedLeb128(bb);
+        var globals = new ArrayList<Global>(count);
+        for (var i = 0; i < count; i++) {
+            var type = bb.get();
+            var mutability = bb.get();
+            byte instruction;
+            var instructionsList = new ArrayList<Byte>();
+            do {
+                instruction = bb.get();
+                instructionsList.add(instruction);
+            } while (instruction != 0x0B);
+            var expressionBuffer = new byte[instructionsList.size()];
+            for (int j = 0; j < expressionBuffer.length; j++) {
+                expressionBuffer[j] = instructionsList.get(j);
+            }
 
-        int importCount = readUnsignedLeb128(bb);
+            var global = new Global(type, mutability, expressionBuffer);
+            globals.add(global);
+        }
+
+        return new GlobalSections(Vector.of(globals));
+    }
+
+    private ExportSection consumeExportSection(ByteBuffer bb) {
+        var count = readUnsignedLeb128(bb);
+        var exports = new ArrayList<Export>(count);
+        for (var e = 0; e < count; e++) {
+            String name = readString(bb);
+            var type = bb.get();
+            var index = readUnsignedLeb128(bb);
+            var export = new Export(name, type, index);
+            exports.add(export);
+        }
+
+        return new ExportSection(Vector.of(exports));
+    }
+
+    private ImportSection consumeImportSection(ByteBuffer bb) {
+        var importCount = readUnsignedLeb128(bb);
+        var imports = new ArrayList<Import>(importCount);
         for (int i = 0; i < importCount; i++) {
-            synchronized (this) {
-                System.out.println("Import " + i);
-                String module = readString(bb);
-                String name = readString(bb);
-                System.out.println(module + "." + name);
-                byte importType = bb.get();
-                switch (importType) {
-                    case 0x00:
-                        System.out.println("\tFunction");
-                        break;
-                    case 0x01:
-                        System.out.println("\tTable");
-                        break;
-                    case 0x02:
-                        System.out.println("\tMemory");
-                        break;
-                    case 0x03:
-                        System.out.println("\tGlobal");
-                        break;
-                }
-                int index = readUnsignedLeb128(bb);
-                System.out.print('\t');
-                System.out.println(index);
-            }
+            var module = readString(bb);
+            var name = readString(bb);
+            var importType = bb.get();
+            var index = readUnsignedLeb128(bb);
+            var imp = new Import(module, name, importType, index);
+            imports.add(imp);
         }
+        return new ImportSection(Vector.of(imports));
     }
 
     private String readString(ByteBuffer bb) {
@@ -281,57 +250,57 @@ public class ModuleFactory {
 
     }
 
-    private void consumeFunctionSection(ByteBuffer bb) {
-        int functions = readUnsignedLeb128(bb);
-        for (int f = 0; f < functions; f++) {
-            synchronized (this) {
-                System.out.println("Function " + f);
-                int index = readUnsignedLeb128(bb);
-                System.out.println("\tIndex " + index);
-            }
+    private FunctionSection consumeFunctionSection(ByteBuffer bb) {
+        var functions = readUnsignedLeb128(bb);
+        var functionIndexes = new int[functions];
+        for (var f = 0; f < functions; f++) {
+            var index = readUnsignedLeb128(bb);
+            functionIndexes[f] = index;
         }
+        return new FunctionSection(IndexVector.of(functionIndexes));
     }
 
-    private void consumeTableSection(ByteBuffer bb) {
-        int tables = readUnsignedLeb128(bb);
-
-        for (int t = 0; t < tables; t++) {
-            synchronized (this) {
-                System.out.println("Table " + t);
-                if (bb.get() != 0x70)
-                    throw new IllegalStateException("Expected Table Type");
-                byte limitType = bb.get();
-                boolean bounded = limitType == 0x01;
-                if (bounded) {
-                    int min = readUnsignedLeb128(bb);
-                    int max = readUnsignedLeb128(bb);
-                    System.out.println("\tMin " + min + " Max " + max);
-                } else {
-                    int min = readUnsignedLeb128(bb);
-                    System.out.println("\tMin " + min);
-                }
+    private TableSection consumeTableSection(ByteBuffer bb) {
+        var count = readUnsignedLeb128(bb);
+        var tables = new ArrayList<Table>(count);
+        for (var i = 0; i < count; i++) {
+            if (bb.get() != 0x70)
+                throw new IllegalStateException("Expected Table Type");
+            var limitType = bb.get();
+            var bounded = limitType == 0x01;
+            var min = readUnsignedLeb128(bb);
+            final Table table;
+            if (bounded) {
+                var max = readUnsignedLeb128(bb);
+                table = new Table(min, max);
+            } else {
+                table = new Table(min);
             }
+            tables.add(table);
         }
+
+        return new TableSection(Vector.of(tables));
     }
 
-    private void consumeMemorySection(ByteBuffer bb) {
-        int memories = readUnsignedLeb128(bb);
+    private MemorySection consumeMemorySection(ByteBuffer bb) {
+        var count = readUnsignedLeb128(bb);
+        var memories = new ArrayList<Memory>(count);
+        for (var i = 0; i < count; i++) {
+            var limitType = bb.get();
+            var bounded = limitType == 0x01;
+            final Memory memory;
+            var min = readUnsignedLeb128(bb);
+            if (bounded) {
+                var max = readUnsignedLeb128(bb);
+                memory = new Memory(min, max);
 
-        for (int m = 0; m < memories; m++) {
-            synchronized (this) {
-                System.out.println("Memory " + m);
-                byte limitType = bb.get();
-                boolean bounded = limitType == 0x01;
-                if (bounded) {
-                    int min = readUnsignedLeb128(bb);
-                    int max = readUnsignedLeb128(bb);
-                    System.out.println("\tMin " + min + " Max " + max);
-                } else {
-                    int min = readUnsignedLeb128(bb);
-                    System.out.println("\tMin " + min);
-                }
+            } else {
+                memory = new Memory(min);
             }
+            memories.add(memory);
         }
+
+        return new MemorySection(Vector.of(memories));
     }
 
     private boolean checkVersion(ByteBuffer bb) {
