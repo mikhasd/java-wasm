@@ -1,7 +1,7 @@
 package com.github.mikhasd.wasm.gen.builder;
 
-import com.github.mikhasd.wasm.gen.model.Module;
-import com.github.mikhasd.wasm.gen.model.*;
+import com.github.mikhasd.wasm.model.*;
+import com.github.mikhasd.wasm.model.Module;
 
 import java.util.ArrayList;
 import java.util.List;

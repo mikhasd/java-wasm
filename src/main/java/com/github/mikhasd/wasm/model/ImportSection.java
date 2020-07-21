@@ -1,4 +1,4 @@
-package com.github.mikhasd.wasm.gen.model;
+package com.github.mikhasd.wasm.model;
 
 public class ImportSection extends VectorSection<Import> {
 

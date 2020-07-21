@@ -1,4 +1,4 @@
-package com.github.mikhasd.wasm.gen.model;
+package com.github.mikhasd.wasm.model;
 
 import com.github.mikhasd.wasm.gen.CodeEmitter;
 import com.github.mikhasd.wasm.gen.CodeWriter;
@@ -6,22 +6,19 @@ import com.github.mikhasd.wasm.gen.OutputStreamCodeWriter;
 
 import java.io.ByteArrayOutputStream;
 
-public abstract class Section implements CodeEmitter {
+public class Code implements CodeEmitter {
 
-    private Sections section;
+    private final Function function;
 
-    Section(Sections sections) {
-        this.section = sections;
+    public Code(Function function) {
+        this.function = function;
     }
 
-    abstract void writeSectionBody(CodeWriter output);
-
     @Override
-    public final void emitCode(CodeWriter output) {
-        output.writeByte(this.section.getIdx());
+    public void emitCode(CodeWriter output) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         OutputStreamCodeWriter codeWriter = new OutputStreamCodeWriter(baos);
-        this.writeSectionBody(codeWriter);
+        function.emitCode(codeWriter);
         byte[] bytes = baos.toByteArray();
         output.writeInteger(bytes.length);
         output.writeBytes(bytes);

@@ -2,9 +2,8 @@ package com.github.mikhasd.gen;
 
 import com.github.mikhasd.wasm.gen.CodeWriter;
 import com.github.mikhasd.wasm.gen.OutputStreamCodeWriter;
-import com.github.mikhasd.wasm.gen.model.Module;
-import com.github.mikhasd.wasm.gen.model.*;
-import com.github.mikhasd.wasm.gen.model.Types;
+import com.github.mikhasd.wasm.model.Module;
+import com.github.mikhasd.wasm.model.*;
 
 import java.io.IOException;
 import java.io.OutputStream;

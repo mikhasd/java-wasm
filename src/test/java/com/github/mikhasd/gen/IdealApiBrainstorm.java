@@ -4,14 +4,14 @@ import com.github.mikhasd.wasm.gen.CodeWriter;
 import com.github.mikhasd.wasm.gen.OutputStreamCodeWriter;
 import com.github.mikhasd.wasm.gen.builder.FunctionReference;
 import com.github.mikhasd.wasm.gen.builder.ModuleBuilder;
-import com.github.mikhasd.wasm.gen.model.Module;
+import com.github.mikhasd.wasm.model.Module;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static com.github.mikhasd.wasm.gen.model.IndexVector.index;
-import static com.github.mikhasd.wasm.gen.model.Types.TYPE_INDEX_I32;
+import static com.github.mikhasd.wasm.model.IndexVector.index;
+import static com.github.mikhasd.wasm.model.Types.TYPE_INDEX_I32;
 
 public class IdealApiBrainstorm {
     public static void main(String... args) throws IOException {
@@ -26,21 +26,21 @@ public class IdealApiBrainstorm {
                 functions(functionProducer -> {
                     FunctionReference subFn = functionProducer.define(index(TYPE_INDEX_I32), index(TYPE_INDEX_I32),
                             bodyProducer -> {
-                                bodyProducer.
-                                        getLocal(0).
-                                        i32Const(-1).
-                                        i32Add();
+                                bodyProducer
+                                        .getLocal(0)
+                                        .i32Const(-1)
+                                        .i32Add();
                             });
                     fnAddOne.set(functionProducer.define(index(TYPE_INDEX_I32), index(TYPE_INDEX_I32),
                             bodyProducer -> {
-                                bodyProducer.
-                                        getLocal(0).
-                                        call(subFn).
-                                        getLocal(0).
-                                        i32Add().
-                                        getLocal(0).
-                                        call(fnEnvAdd).
-                                        i32Add();
+                                bodyProducer
+                                        .getLocal(0)
+                                        .call(subFn)
+                                        .getLocal(0)
+                                        .i32Add()
+                                        .getLocal(0)
+                                        .call(fnEnvAdd)
+                                        .i32Add();
                             }));
                 })
                 .exports(exportsBuilder -> {

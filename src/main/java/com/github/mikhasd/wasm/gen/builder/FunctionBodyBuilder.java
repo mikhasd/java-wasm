@@ -1,7 +1,7 @@
 package com.github.mikhasd.wasm.gen.builder;
 
 import com.github.mikhasd.wasm.gen.OutputStreamCodeWriter;
-import com.github.mikhasd.wasm.gen.model.instruction.Instruction;
+import com.github.mikhasd.wasm.model.instruction.Instruction;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;

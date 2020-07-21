@@ -1,12 +1,10 @@
-package com.github.mikhasd.wasm.gen.model;
+package com.github.mikhasd.wasm.model;
 
 import com.github.mikhasd.wasm.gen.CodeEmitter;
 import com.github.mikhasd.wasm.gen.CodeWriter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Module implements CodeEmitter {
 

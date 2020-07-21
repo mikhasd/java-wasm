@@ -1,13 +1,12 @@
 package com.github.mikhasd.wasm.gen.builder;
 
-import com.github.mikhasd.wasm.gen.model.*;
+import com.github.mikhasd.wasm.model.*;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 
 public class FunctionsBuilder {
 
@@ -21,7 +20,7 @@ public class FunctionsBuilder {
         this.funcidx = funcidx;
     }
 
-    public FunctionReference define(IndexVector parameters, IndexVector result, Consumer<FunctionBodyBuilder> functionBodyBuilder){
+    public FunctionReference define(IndexVector parameters, IndexVector result, Consumer<FunctionBodyBuilder> functionBodyBuilder) {
         int typeIndex = typeRegistry.getTypeIndex(FunctionType.of(parameters, result));
         FunctionBodyBuilder bodyBuilder = new FunctionBodyBuilder();
         functionBodyBuilder.accept(bodyBuilder);
@@ -31,7 +30,7 @@ public class FunctionsBuilder {
         return new FunctionReference(index);
     }
 
-    public FunctionReference define(Consumer<FunctionBodyBuilder> functionBodyBuilder){
+    public FunctionReference define(Consumer<FunctionBodyBuilder> functionBodyBuilder) {
         return this.define(IndexVector.empty(), IndexVector.empty(), functionBodyBuilder);
     }
 
@@ -54,13 +53,13 @@ public class FunctionsBuilder {
             this.body = body;
         }
 
-        int getTypeIndex(){
+        int getTypeIndex() {
             return this.typeIndex;
         }
 
-        public com.github.mikhasd.wasm.gen.model.Function toModel() {
+        public com.github.mikhasd.wasm.model.Function toModel() {
             byte[] opcodes = body.getOpCodes();
-            return com.github.mikhasd.wasm.gen.model.Function.create(IndexVector.empty(), opcodes);
+            return com.github.mikhasd.wasm.model.Function.create(IndexVector.empty(), opcodes);
         }
     }
 }

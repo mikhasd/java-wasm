@@ -1,4 +1,4 @@
-package com.github.mikhasd.wasm.gen.model;
+package com.github.mikhasd.wasm.model;
 
 /**
  * @see <a href="https://webassembly.github.io/spec/core/binary/types.html">Types<a/>

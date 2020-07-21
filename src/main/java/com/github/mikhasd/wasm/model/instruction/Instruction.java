@@ -1,4 +1,4 @@
-package com.github.mikhasd.wasm.gen.model.instruction;
+package com.github.mikhasd.wasm.model.instruction;
 
 import com.github.mikhasd.wasm.gen.CodeEmitter;
 import com.github.mikhasd.wasm.gen.CodeWriter;

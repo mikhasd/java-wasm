@@ -1,4 +1,4 @@
-package com.github.mikhasd.wasm.gen.model;
+package com.github.mikhasd.wasm.model;
 
 public enum Sections {
     Custom(Sections.CUSTOM_IDX),

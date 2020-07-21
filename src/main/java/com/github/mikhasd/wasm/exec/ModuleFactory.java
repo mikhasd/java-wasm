@@ -1,6 +1,7 @@
 package com.github.mikhasd.wasm.exec;
 
 import com.github.mikhasd.wasm.gen.model.*;
+import com.github.mikhasd.wasm.model.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
