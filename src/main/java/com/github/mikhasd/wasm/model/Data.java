@@ -1,9 +1,8 @@
 package com.github.mikhasd.wasm.model;
 
-import com.github.mikhasd.wasm.gen.CodeEmitter;
-import com.github.mikhasd.wasm.gen.CodeWriter;
+import java.util.Arrays;
 
-public class Data implements CodeEmitter {
+public class Data {
     private final int memoryIdx;
     private final byte[] expression;
     private final byte[] data;
@@ -15,9 +14,11 @@ public class Data implements CodeEmitter {
     }
 
     @Override
-    public void emitCode(CodeWriter output) {
-        output.writeInteger(this.memoryIdx);
-        output.writeBytes(this.expression);
-        output.writeBytes(this.data);
+    public String toString() {
+        return "{" +
+                "memoryIdx=" + memoryIdx +
+                ", expression=" + Arrays.toString(expression) +
+                ", data=" + Arrays.toString(data) +
+                '}';
     }
 }

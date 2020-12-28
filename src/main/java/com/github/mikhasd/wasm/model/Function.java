@@ -1,25 +1,20 @@
 package com.github.mikhasd.wasm.model;
 
-import com.github.mikhasd.wasm.gen.CodeEmitter;
-import com.github.mikhasd.wasm.gen.CodeWriter;
+import com.github.mikhasd.wasm.parse.BufferReader;
 
-public class Function implements CodeEmitter {
+import java.util.Arrays;
 
-    private final IndexVector locals;
-    private final byte[] encodedInstructions;
+public class Function {
+    private final Local[] locals;
+    private final BufferReader reader;
 
-    public Function(IndexVector locals, byte[] encodedInstructions) {
+    public Function(Local[] locals, BufferReader reader) {
         this.locals = locals;
-        this.encodedInstructions = encodedInstructions;
+        this.reader = reader;
     }
 
     @Override
-    public void emitCode(CodeWriter output) {
-        locals.emitCode(output);
-        output.writeBytes(this.encodedInstructions);
-    }
-
-    public static Function create(IndexVector locals, byte[] encodedInstructions){
-        return new Function(locals, encodedInstructions);
+    public String toString() {
+        return Arrays.toString(locals);
     }
 }

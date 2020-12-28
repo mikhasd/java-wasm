@@ -1,29 +1,16 @@
 package com.github.mikhasd.wasm.model;
 
-import com.github.mikhasd.wasm.gen.CodeEmitter;
-import com.github.mikhasd.wasm.gen.CodeWriter;
-import com.github.mikhasd.wasm.gen.OutputStreamCodeWriter;
-
-import java.io.ByteArrayOutputStream;
-
-public abstract class Section implements CodeEmitter {
-
-    private Sections section;
-
-    Section(Sections sections) {
-        this.section = sections;
-    }
-
-    abstract void writeSectionBody(CodeWriter output);
-
-    @Override
-    public final void emitCode(CodeWriter output) {
-        output.writeByte(this.section.getIdx());
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        OutputStreamCodeWriter codeWriter = new OutputStreamCodeWriter(baos);
-        this.writeSectionBody(codeWriter);
-        byte[] bytes = baos.toByteArray();
-        output.writeInteger(bytes.length);
-        output.writeBytes(bytes);
-    }
+public interface Section {
+    byte CUSTOM_IDX = 0x00;
+    byte TYPE_IDX = 0x01;
+    byte IMPORT_IDX = 0x02;
+    byte FUNCTION_IDX = 0x03;
+    byte TABLE_IDX = 0x04;
+    byte MEMORY_IDX = 0x05;
+    byte GLOBAL_IDX = 0x06;
+    byte EXPORT_IDX = 0x07;
+    byte START_IDX = 0x08;
+    byte ELEMENT_IDX = 0x09;
+    byte CODE_IDX = 0x0A;
+    byte DATA_IDX = 0x0B;
 }

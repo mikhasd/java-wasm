@@ -7,9 +7,10 @@
     <groupId>com.github.mikhasd</groupId>
     <artifactId>wasm</artifactId>
     <packaging>pom</packaging>
-    <version>0.0.0</version>
+    <version>${revision}</version>
 
     <properties>
+        <revision>0.0.0</revision>
         <java.version>11</java.version>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <maven.compiler.source>${java.version}</maven.compiler.source>
