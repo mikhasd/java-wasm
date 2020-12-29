@@ -19,7 +19,7 @@ public class EvaluationTest {
             new Parser().parse(buffer, handler);
             var module = handler.build();
             var instance = module.instantiate();
-            WasmValue result = instance.call("do_the_magic", 1, 2);
+            WasmValue result = instance.call("do_the_magic", 20, 2);
             System.out.println(result.value());
         }
     }
