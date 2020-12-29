@@ -25,4 +25,12 @@ public class Global {
                 ", expressionBuffer=" + Arrays.toString(expressionBuffer) +
                 '}';
     }
+
+    public Type type() {
+        return this.type;
+    }
+
+    public byte[] expression() {
+        return this.expressionBuffer;
+    }
 }

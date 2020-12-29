@@ -13,7 +13,7 @@ public class TableSectionReader extends BaseSectionReader<Table> {
     }
 
     @Override
-    protected Table readOne() {
+    protected Table read() {
         Type type = file.type();
         var limits = file.readLimits();
         return new Table(type, limits);

@@ -11,7 +11,7 @@ public class FunctionSectionReader extends BaseSectionReader<Integer> {
     }
 
     @Override
-    protected Integer readOne() {
+    protected Integer read() {
         return file.readUnsignedLeb128();
     }
 

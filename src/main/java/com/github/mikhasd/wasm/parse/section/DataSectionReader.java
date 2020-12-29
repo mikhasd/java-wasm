@@ -1,18 +1,18 @@
 package com.github.mikhasd.wasm.parse.section;
 
-import com.github.mikhasd.wasm.model.Data;
+import com.github.mikhasd.wasm.model.DataSegment;
 import com.github.mikhasd.wasm.parse.Handler;
 import com.github.mikhasd.wasm.parse.WasmReader;
 
 import java.util.ArrayList;
 
-public class DataSectionReader extends BaseSectionReader<Data> {
+public class DataSectionReader extends BaseSectionReader<DataSegment> {
     public DataSectionReader(WasmReader file, int length) {
         super(file, length);
     }
 
     @Override
-    protected Data readOne() {
+    protected DataSegment read() {
         var index = file.readUnsignedLeb128();
         var expression = new ArrayList<Byte>();
         byte instruction;
@@ -27,7 +27,7 @@ public class DataSectionReader extends BaseSectionReader<Data> {
         var dataLength = file.readUnsignedLeb128();
         var dataBuffer = file.readBytes(dataLength);
 
-        return new Data(index, expressionBuffer, dataBuffer);
+        return new DataSegment(index, expressionBuffer, dataBuffer);
     }
 
     @Override

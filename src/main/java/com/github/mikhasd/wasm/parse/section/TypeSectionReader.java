@@ -12,7 +12,7 @@ public class TypeSectionReader extends BaseSectionReader<TypeDefinition> {
     }
 
     @Override
-    protected TypeDefinition readOne() {
+    protected TypeDefinition read() {
         byte typeType = file.readU8();
         switch (typeType) {
             case 0x60:

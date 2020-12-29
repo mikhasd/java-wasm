@@ -75,4 +75,8 @@ public class BufferReader {
     public int position() {
         return buffer.position();
     }
+
+    public byte[] toBytes() {
+        return this.buffer.array();
+    }
 }

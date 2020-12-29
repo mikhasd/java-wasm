@@ -4,13 +4,21 @@ import com.github.mikhasd.wasm.parse.BufferReader;
 
 import java.util.Arrays;
 
-public class Function {
+public class FunctionSegment {
     private final Local[] locals;
-    private final BufferReader reader;
+    private final byte[] opcodes;
 
-    public Function(Local[] locals, BufferReader reader) {
+    public FunctionSegment(Local[] locals, byte[] opcodes) {
         this.locals = locals;
-        this.reader = reader;
+        this.opcodes = opcodes;
+    }
+
+    public Local[] getLocals() {
+        return locals;
+    }
+
+    public byte[] opcodes() {
+        return this.opcodes;
     }
 
     @Override

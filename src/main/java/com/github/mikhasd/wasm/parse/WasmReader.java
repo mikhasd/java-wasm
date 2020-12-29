@@ -20,8 +20,10 @@ public final class WasmReader extends BufferReader {
         return buf;
     }
 
-    int version() {
-        return this.readI32();
+    byte[] version() {
+        byte[] buf = new byte[4];
+        getBuffer().get(buf, 0, 4);
+        return buf;
     }
 
     byte sectionIdx() {

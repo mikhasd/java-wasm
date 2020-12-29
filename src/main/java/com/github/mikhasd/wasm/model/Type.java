@@ -5,12 +5,13 @@ public enum Type {
     I64(Type.TYPE_IDX_I64),
     F32(Type.TYPE_IDX_F32),
     F64(Type.TYPE_IDX_F64),
-    TABLE(Type.TYPE_IDX_TABLE),
+    Table(Type.TYPE_IDX_TABLE),
     V128(Type.TYPE_IDX_V128),
     FuncRef(Type.TYPE_IDX_FUNC_REF),
     ExternRef(Type.TYPE_IDX_EXTERN_REF),
     Func(Type.TYPE_IDX_FUNC),
-    EmptyBlockType(Type.TYPE_IDX_EMPTY_BLOCK);
+    EmptyBlockType(Type.TYPE_IDX_EMPTY_BLOCK),
+    Void(Type.TYPE_IDX_VOID);
 
     public static final byte TYPE_IDX_I32 = 0x7F;
     public static final byte TYPE_IDX_I64 = 0x7E;
@@ -22,6 +23,8 @@ public enum Type {
     public static final byte TYPE_IDX_EXTERN_REF = 0x11;
     public static final byte TYPE_IDX_FUNC = 0x20;
     public static final byte TYPE_IDX_EMPTY_BLOCK = 0x40;
+
+    public static final byte TYPE_IDX_VOID = (byte) 0x000000FF;
 
     private final byte idx;
 

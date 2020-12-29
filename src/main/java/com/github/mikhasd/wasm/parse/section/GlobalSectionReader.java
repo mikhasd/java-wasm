@@ -13,7 +13,7 @@ public class GlobalSectionReader extends BaseSectionReader<Global> {
     }
 
     @Override
-    protected Global readOne() {
+    protected Global read() {
         var type = file.type();
         var mutability = file.readU8();
         byte instruction;

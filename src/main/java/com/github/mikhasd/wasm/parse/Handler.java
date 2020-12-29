@@ -5,7 +5,7 @@ import com.github.mikhasd.wasm.parse.section.*;
 import java.nio.ByteBuffer;
 
 public interface Handler {
-    void onVersion(int version);
+    void onVersion(byte[] version);
 
     void onCustomSection(BufferReader buffer);
 
@@ -28,4 +28,6 @@ public interface Handler {
     void onTableSection(TableSectionReader reader);
 
     void onFunction(CodeSectionReader reader);
+
+    void onElementSection(ElementSectionReader reader);
 }

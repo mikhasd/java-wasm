@@ -17,10 +17,22 @@ public interface TypeDefinition {
         public String toString() {
             return Arrays.toString(parameters) + ',' + Arrays.toString(returns);
         }
+
+        public Type[] parameters() {
+            return parameters;
+        }
+
+        public Type[] returns() {
+            return returns;
+        }
     }
 
     class ModuleType implements TypeDefinition {
 
+    }
+
+    default FunctionType asFunction() {
+        return (FunctionType) this;
     }
 
 

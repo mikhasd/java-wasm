@@ -12,7 +12,7 @@ public class ImportSectionReader extends BaseSectionReader<Import> {
     }
 
     @Override
-    protected Import readOne() {
+    protected Import read() {
         var module = file.readString();
         var name = file.readString();
         var sectionEntryType = file.readExternalKind();

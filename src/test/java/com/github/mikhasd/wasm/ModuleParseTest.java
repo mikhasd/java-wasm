@@ -15,12 +15,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class ModuleParseTest {
 
     public static void main(String... args) throws IOException, URISyntaxException {
-        Path wasmPath = Paths.get("/home/mikhas/projects/java-wasm/src/test/resources/main.wasm");
+        Path wasmPath = Paths.get("/home/mikhas/projects/java-wasm/src/test/resources/main_simply_add.wasm");
 
         try (var channel = FileChannel.open(wasmPath, StandardOpenOption.READ)) {
             MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
@@ -31,8 +32,8 @@ public class ModuleParseTest {
 
     private static final class Handler implements com.github.mikhasd.wasm.parse.Handler {
         @Override
-        public void onVersion(int version) {
-            System.out.printf("Got version %d\n", version);
+        public void onVersion(byte[] version) {
+            System.out.printf("Got version %s\n", Arrays.toString(version));
         }
 
         @Override
@@ -50,76 +51,52 @@ public class ModuleParseTest {
 
         @Override
         public void onTypeSection(TypeSectionReader reader) {
-            while (reader.hasNext()){
-                TypeDefinition type = reader.read();
-                System.out.printf("Got type %s\n", type);
-            }
+            reader.forEach(type -> System.out.printf("Got type %s\n", type));
         }
 
         @Override
         public void onDataSection(DataSectionReader reader) {
-            while(reader.hasNext()){
-                var data = reader.read();
-                System.out.printf("Got data %s\n", data);
-            }
+            reader.forEach(item -> System.out.printf("Got data %s\n", item));
         }
 
         @Override
         public void onExportSection(ExportSectionReader reader) {
-            while(reader.hasNext()){
-                Export export = reader.read();
-                System.out.printf("Got export %s\n",export);
-            }
-
+            reader.forEach(item -> System.out.printf("Got export %s\n", item));
         }
 
         @Override
         public void onFunctionSection(FunctionSectionReader reader) {
-            while(reader.hasNext()){
-                Integer fnIdx = reader.read();
-                System.out.printf("Got function with type %d\n", fnIdx);
-            }
+            reader.forEach(item -> System.out.printf("Got function with type %s\n", item));
         }
 
         @Override
         public void onGlobalSection(GlobalSectionReader reader) {
-            while (reader.hasNext()){
-                Global global = reader.read();
-                System.out.printf("Got global %s\n", global);
-            }
+            reader.forEach(item -> System.out.printf("Got global %s\n", item));
         }
 
         @Override
         public void onImportSection(ImportSectionReader reader) {
-            while (reader.hasNext()){
-                Import anImport = reader.read();
-                System.out.printf("Got import %s\n", anImport);
-            }
+            reader.forEach(item -> System.out.printf("Got global %s\n", item));
         }
 
         @Override
         public void onMemorySection(MemorySectionReader reader) {
-            while (reader.hasNext()){
-                Memory memory = reader.read();
-                System.out.printf("Got memory %s\n", memory);
-            }
+            reader.forEach(item -> System.out.printf("Got memory %s\n", item));
         }
 
         @Override
         public void onTableSection(TableSectionReader reader) {
-
-            while(reader.hasNext()){
-                Table table = reader.read();
-                System.out.printf("Got table %s\n", table);
-            }
+            reader.forEach(item -> System.out.printf("Got table %s\n", item));
         }
 
         @Override
         public void onFunction(CodeSectionReader reader) {
-            while(reader.hasNext()){
-                Function code = reader.read();
-                System.out.printf("Got code %s\n", code);
-            }
+            reader.forEach(item -> System.out.printf("Got function %s\n", item));
+        }
+
+        @Override
+        public void onElementSection(ElementSectionReader reader) {
+            reader.forEach(item -> System.out.printf("Got element %s\n", item));
         }
     }
 }

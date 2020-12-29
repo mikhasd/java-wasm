@@ -14,6 +14,17 @@ public final class Limits {
         this.maximum = -1;
     }
 
+    public boolean isBounded(){
+        return this.maximum == -1;
+    }
+
+    public int getInitial() {
+        return initial;
+    }
+
+    public int getMaximum() {
+        return maximum;
+    }
 
     @Override
     public String toString() {
